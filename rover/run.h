@@ -3,12 +3,19 @@
 
 #include <math.h>
 #include <ode/ode.h>
+#include <time.h>
 
 #define RAD2DEG 180.0/M_PI
 #define DEG2RAD M_PI/180.0
 
 #define MAX_MOTOR_R 2.5
 #define MAX_MOTOR_L 2.5
+
+#define GETCOORDINATE 0
+#define MEASUREGYRO 1
+
+#define DISABLE_DATA 0
+#define AVAILABLE_DATA 1
 
 #define MAX_GOAL_DISTANCE 185 //[m] 種子島のフィールドにおいて走行しなければならない走行距離の最悪値
 
@@ -17,9 +24,10 @@ extern dReal goalX, goalY, goalZ, goalWidth, goalLength, goalHeight;
 extern dBodyID body[4];
 
 void ReceiveRequestData(dBodyID *body, int h, char *request);
+void SetSamplingRate(int FuncID, clock_t rate);
 void MotorControl(int motorL, int motorR);
-void GetCoordinate(dBodyID *body, float *x, float *y, float *z);
-void MeasureGyro(dBodyID *body, float *x, float *y, float *z);
+int GetCoordinate(dBodyID *body, float *x, float *y, float *z);
+int MeasureGyro(dBodyID *body, float *x, float *y, float *z);
 void SetGoalPoint(float x, float y);
 void SetStartPoint(float x, float y, float z);
 void SetGoalBox(float width, float length, float height);

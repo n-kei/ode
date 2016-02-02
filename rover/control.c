@@ -4,12 +4,12 @@
 #include "control.h"
 
 #define GOAL_X 10.0
-#define GOAL_Y -10.0
+#define GOAL_Y 10.0
 
  // PI制御ゲイン
 #define GAIN_P 100.0 // 比例ｹﾞｲﾝ
-#define GAIN_I 0.0 // 積分ｹﾞｲﾝ
-#define GAIN_D 0.5 //微分ゲイン
+#define GAIN_I 0.00000005 // 積分ｹﾞｲﾝ
+#define GAIN_D 0.0 //微分ゲイン
 
 #define Ka 0.01
 
@@ -42,7 +42,7 @@ float PIDctrl(float dCommand, float dVal, float dt)
   // 制御入力
   dRet = GAIN_P * dErr + GAIN_I * s_dErrIntg + GAIN_D * iErr;
 
-  fprintf(stderr, "de:%f\tie:%f\n", dErr, iErr);
+  //fprintf(stderr, "de:%f\tie:%f\n", dErr, iErr);
   return (dRet);
 }
 
@@ -54,13 +54,13 @@ void SteerControl(float Command_rad, float Current_rad, float dt)
   if(ControlValue < 0) {
     ControlValue = -ControlValue;
     ControlValue = constrain(ControlValue, 1, 255);
-    fprintf(stderr, "cr:%f\t", ControlValue);
+    //fprintf(stderr, "cr:%f\t", ControlValue);
     MotorControl(255, 255 - ControlValue); 
     //MotorControl(255 - ControlValue, 255);
   }
   else{
     ControlValue = constrain(ControlValue, 1, 255);
-    fprintf(stderr, "cl:%f\t", ControlValue);
+    //fprintf(stderr, "cl:%f\t", ControlValue);
     MotorControl(255 - ControlValue, 255);
     //MotorControl(255, 255 - ControlValue); 
   }
@@ -79,6 +79,7 @@ float getDt(void)
 
 FILE *fp;
 clock_t StartTime;
+float CurrentAngle;
 
 void setup(void)
 {
@@ -88,22 +89,30 @@ void setup(void)
     exit(1);
   }
   fprintf(fp, "#CurrentValue,#time\n");
+  SetSamplingRate(GETCOORDINATE, 100000);
+  
   StartTime = clock();
-}
+  CurrentAngle = GetAngle(1, 0,GOAL_X, GOAL_Y);
+} 
 
 void loop(void)
 {
   float x, y, z;
-  float angle, ControlValue;
-  clock_t current;
+  float distance;
   float dt;
+  int Sflag = DISABLE_DATA;
 
   
   dt = getDt();
   MeasureGyro(body, &x, &y, &z);
-  GetCoordinate(body, &x, &y, &z);
-  angle = GetAngle(x, y, GOAL_X, GOAL_Y);
-  SteerControl(angle, z*dt/1000, dt);
-  fprintf(stderr, "angle=%f\n", angle*RAD2DEG);
-  fprintf(fp, "%f,%ld\n", angle*RAD2DEG, clock() - StartTime);
+  Sflag = GetCoordinate(body, &x, &y, &z);
+  
+  if(Sflag) {
+    distance = GetDistance(x, y, GOAL_X, GOAL_Y);
+    CurrentAngle = GetAngle(x, y, GOAL_X, GOAL_Y);
+    distance = distance * sin(CurrentAngle);
+  }
+  //SteerControl(angle+ distance * 0.1, z*dt/1000, dt);
+  //fprintf(stderr, "angle=%f\tditance=%f\n", angle*RAD2DEG, distance);
+  //fprintf(fp, "%f,%ld\n", angle*RAD2DEG, clock() - StartTime);
 }

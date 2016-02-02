@@ -9,6 +9,11 @@
 
 //#define SERIAL_ENABLE
 
+static clock_t GetCoordinateRate;
+static clock_t MeasureGyroRate;
+static clock_t GetCoordinateOrigin;
+static clock_t MeasureGyroOrigin;
+
 #ifdef SERIAL_ENABLE
 void ReceiveRequestData(dBodyID *body, int h, char *request)
 {
@@ -100,6 +105,22 @@ void ReceiveRequestData(dBodyID *body, int h, char *request)
 }
 #endif
 
+void SetSamplingRate(int FuncID, clock_t rate)
+{
+  switch(FuncID) {
+  case GETCOORDINATE:
+    GetCoordinateRate = rate;
+    GetCoordinateOrigin = clock();
+    break;
+  case MEASUREGYRO:
+    MeasureGyroRate = rate;
+    MeasureGyroOrigin = clock();
+    break;
+  default:
+    break;
+  }
+}
+
 void MotorControl(int motorL, int motorR)
 {
   int motorl, motorr;
@@ -119,24 +140,38 @@ void MotorControl(int motorL, int motorR)
   speedR = (dReal)motorR / 255.0 * MAX_MOTOR_R;
 }
 
-void GetCoordinate(dBodyID *body, float *x, float *y, float *z)
+int GetCoordinate(dBodyID *body, float *x, float *y, float *z)
 {
   const dReal *pos;
+
+  if((clock() - GetCoordinateOrigin) >= GetCoordinateRate) {
+    pos = dBodyGetPosition(body[0]);
+    *x = (float)pos[0];
+    *y = (float)pos[1];
+    *z = (float)pos[2];
+    GetCoordinateOrigin = clock();
+    return(AVAILABLE_DATA);
+    
+  } else
+    return(DISABLE_DATA);
   
-  pos = dBodyGetPosition(body[0]);
-  *x = (float)pos[0];
-  *y = (float)pos[1];
-  *z = (float)pos[2];
 }
 
-void MeasureGyro(dBodyID *body, float *x, float *y, float *z)
+int MeasureGyro(dBodyID *body, float *x, float *y, float *z)
 {
   const dReal *gyro;
 
-  gyro = dBodyGetAngularVel(body[0]);
-  *x = (float)gyro[0];
-  *y = (float)gyro[1];
-  *z = (float)gyro[2];
+  if((clock() - MeasureGyroOrigin) >= MeasureGyroRate) {
+    gyro = dBodyGetAngularVel(body[0]);
+    *x = (float)gyro[0];
+    *y = (float)gyro[1];
+    *z = (float)gyro[2];
+    MeasureGyroOrigin = clock();  
+    return(AVAILABLE_DATA);
+    
+  } else
+    return(DISABLE_DATA);
+
 }
 
 void SetGoalPoint(float x, float y)
