@@ -13,7 +13,7 @@ vpath %.c Serial4Arduino
 .SUFFIXES: .c.o
 
 .c.o:
-	$(CC) -c $<
+	$(CC) -c $< 
 
 $(TARGET): $(OBJS) $(INCLUDES)
 	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(INCS) $(LIBS)

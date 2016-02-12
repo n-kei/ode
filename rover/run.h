@@ -23,8 +23,17 @@ extern dReal speedR, speedL, steer;	// user commands
 extern dReal goalX, goalY, goalZ, goalWidth, goalLength, goalHeight;
 extern dBodyID body[4];
 
+typedef struct {
+  float x1;
+  float y1;
+  float x2;
+  float y2;
+} VECTOR;
+
 void ReceiveRequestData(dBodyID *body, int h, char *request);
 void SetSamplingRate(int FuncID, clock_t rate);
+void SetNoiseValue(int FuncID, float noise);
+float GetNoiseValue(int FuncID);
 void MotorControl(int motorL, int motorR);
 int GetCoordinate(dBodyID *body, float *x, float *y, float *z);
 int MeasureGyro(dBodyID *body, float *x, float *y, float *z);
@@ -37,6 +46,7 @@ float GetInnerProduct(float originX, float originY,
 		              float destX, float destY);
 float GetAngle(float originX, float originY,
 	                  float destX, float destY);
+float GetAngle4Vector(VECTOR vec1, VECTOR vec2);
 float GetDistance(float originX, float originY,
 			      float destX, float destY);
 #endif
