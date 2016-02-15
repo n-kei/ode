@@ -193,7 +193,31 @@ int GetCoordinate(dBodyID *body, float *x, float *y, float *z)
     *z = (float)pos[2] + GetNoiseValue(GETCOORDINATE);
     GetCoordinateOrigin = clock();
     return(AVAILABLE_DATA);
-    
+  } else
+    return(DISABLE_DATA);
+  
+}
+
+int GetCoordinateAve(dBodyID *body, float *x, float *y, float *z)
+{
+  const dReal *pos;
+  static float xave = 0, yave = 0, zave = 0;
+  static unsigned int cnt = 0;
+
+  pos = dBodyGetPosition(body[0]);
+  xave += (float)pos[0] + GetNoiseValue(GETCOORDINATE);
+  yave += (float)pos[1] + GetNoiseValue(GETCOORDINATE);
+  zave += (float)pos[2] + GetNoiseValue(GETCOORDINATE);
+  cnt++;
+  
+  if((clock() - GetCoordinateOrigin) >= GetCoordinateRate) {
+    *x = xave / cnt;
+    *y = yave / cnt;
+    *z = zave / cnt;
+    xave = yave = zave = 0.0;
+    cnt = 0;
+    GetCoordinateOrigin = clock();
+    return(AVAILABLE_DATA);
   } else
     return(DISABLE_DATA);
   

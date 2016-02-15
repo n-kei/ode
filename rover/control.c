@@ -3,13 +3,13 @@
 #include "run.h"
 #include "control.h"
 
-#define GOAL_X 30.0
+#define GOAL_X 5.0
 #define GOAL_Y 30.0
 
  // PI制御ゲイン
-#define GAIN_P 6.0 // 比例ｹﾞｲﾝ
+#define GAIN_P 8.0 // 比例ｹﾞｲﾝ
 #define GAIN_I 0.05 // 積分ｹﾞｲﾝ
-#define GAIN_D 0.8 //微分ゲイン
+#define GAIN_D 1.0 //微分ゲイン
 
 //#define SUCCESS1
 #define SUCCESS2
@@ -57,13 +57,13 @@ void SteerControl(float Command_rad, float Current_rad, float dt)
     ControlValue = -ControlValue;
     ControlValue = constrain(ControlValue, 1, 125);
     //fprintf(stderr, "cr:%f\t", ControlValue);
-    MotorControl(255, 255 - ControlValue); 
+    MotorControl(127 + ControlValue, 127 - ControlValue); 
     //MotorControl(255 - ControlValue, 255);
   }
   else{
     ControlValue = constrain(ControlValue, 1, 125);
     //fprintf(stderr, "cl:%f\t", ControlValue);
-    MotorControl(255 - ControlValue, 255);
+    MotorControl(127 - ControlValue, 127 + ControlValue);
     //MotorControl(255, 255 - ControlValue); 
   }
 }
@@ -152,7 +152,7 @@ void setup(void)
   fprintf(fp, "#CurrentValue,#time\n");
 
   SetSamplingRate(GETCOORDINATE, 200000);
-  SetNoiseValue(GETCOORDINATE, 1.0);
+  SetNoiseValue(GETCOORDINATE, 5.0);
   GoalAngle = 45.0 * DEG2RAD;
   GoalVector.x2 = GOAL_X;
   GoalVector.y2 = GOAL_Y;
@@ -172,7 +172,7 @@ void loop(void)
   MeasureGyro(body, &x, &y, &z);
   angle += z * dt;
   angle = GetTransitionAngle(angle, -180*DEG2RAD, 180*DEG2RAD);
-  Sflag = GetCoordinate(body, &x, &y, &z);
+  Sflag = GetCoordinateAve(body, &x, &y, &z);
   if(Sflag) {
     distance = GetDistance(0, 0, x, y);
     distance = distance * sin(GoalAngle);
@@ -182,7 +182,7 @@ void loop(void)
     CurrentVector.y2 = GoalVector.y1 = y;
     GoalAngle = GetAngle4Vector(CurrentVector, GoalVector);
     angle = 0;
-    fprintf(stderr, "//////////GoalAngle/////=%f\n", GoalAngle*RAD2DEG);
+    fprintf(stderr, "x=%f\ty=%f\tz=%f\tGoalAngle=%f\n", x, y, z, GoalAngle*RAD2DEG);
   }
   SteerControl(GoalAngle, angle * Ka + distance * Kd, dt);
 }

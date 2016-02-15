@@ -36,6 +36,7 @@ void SetNoiseValue(int FuncID, float noise);
 float GetNoiseValue(int FuncID);
 void MotorControl(int motorL, int motorR);
 int GetCoordinate(dBodyID *body, float *x, float *y, float *z);
+int GetCoordinateAve(dBodyID *body, float *x, float *y, float *z);
 int MeasureGyro(dBodyID *body, float *x, float *y, float *z);
 void SetGoalPoint(float x, float y);
 void SetStartPoint(float x, float y, float z);
